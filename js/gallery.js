@@ -45,62 +45,67 @@ const images = [
     description: "Lighthouse Coast Sea",
   },
 ];
-
 const gallery = document.querySelector(".gallery");
 
-const markup = images.map(({ preview, original, description }) => `
-  <li>
-    <a class="gallery-link" href="${original}">
-      <img class="gallery-image" src="${preview}" alt="${description}" />
-    </a>
-  </li>
-`).join("");
-
-gallery.innerHTML = markup;
-
-gallery.style.listStyle = "none";
-gallery.style.margin = "0 auto";
+gallery.style.listStyleType = "none";
 gallery.style.width = "1128px";
+gallery.style.minWidth = "320px";
 gallery.style.display = "grid";
 gallery.style.gridTemplateColumns = "repeat(3, 1fr)";
 gallery.style.gap = "24px";
+gallery.style.justifyContent = "center";
+gallery.style.alignItems = "center";
+gallery.style.margin = "0 auto";
 
-const style = document.createElement("style");
-style.textContent = `
-  .gallery-link {
-    display: block;
-    text-decoration: none;
-  }
-  .gallery-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.3s ease;
-    cursor: zoom-in;
-  }
-  .gallery-image:hover {
-    transform: scale(1.05);
-  }
-  .basicLightbox--visible {
-    background: rgba(0, 0, 0, 0.9) !important;
-  }
-`;
-document.head.appendChild(style);
 
-gallery.addEventListener("click", (e) => {
-  e.preventDefault();
+gallery.innerHTML = images
+  .map(
+    ({ preview, original, description }) => `
+  <li class="gallery-item" style="overflow:hidden; transition: transform 0.3s ease; cursor: pointer;">
+    <a class="gallery-link" href="${original}">
+      <img
+        class="gallery-image"
+        src="${preview}"
+        data-source="${original}"
+        alt="${description}"
+        width="360"
+        height="200"
+        style="display:block; width:100%; height:auto;"
+      />
+    </a>
+  </li>`
+  )
+  .join("");
 
-  const link = e.target.closest("a");
-  if (!link) return;
 
-  const instance = basicLightbox.create(`
-    <img src="${link.href}" style="max-width: 90vw; max-height: 90vh; cursor: pointer;" />
-  `, {
-    onShow: (instance) => {
-      instance.element().querySelector('img').onclick = instance.close;
-    }
+gallery.querySelectorAll(".gallery-item").forEach((item) => {
+  item.addEventListener("mouseenter", () => {
+    item.style.transform = "scale(1.05)";
+    item.style.zIndex = "10";
   });
+  item.addEventListener("mouseleave", () => {
+    item.style.transform = "scale(1)";
+    item.style.zIndex = "0";
+  });
+});
+
+gallery.addEventListener("click", (event) => {
+  event.preventDefault();
+  const target = event.target;
+  if (target.nodeName !== "IMG") return;
+
+  const largeImageUrl = target.dataset.source;
+
+  const instance = basicLightbox.create(
+    `
+    <img src="${largeImageUrl}" width="1112" height="640" style="cursor:pointer;">
+  `,
+    {
+      onShow: (instance) => {
+        instance.element().querySelector("img").onclick = () => instance.close();
+      },
+    }
+  );
 
   instance.show();
 });
