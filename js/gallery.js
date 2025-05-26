@@ -48,14 +48,13 @@ const images = [
 
 const gallery = document.querySelector(".gallery");
 
-const markup = images.map(
-  ({ preview, original, description }) => `
-    <li>
-      <a class="gallery-link" href="${original}">
-        <img class="gallery-image" src="${preview}" alt="${description}" />
-      </a>
-    </li>`
-).join("");
+const markup = images.map(({ preview, original, description }) => `
+  <li>
+    <a class="gallery-link" href="${original}">
+      <img class="gallery-image" src="${preview}" alt="${description}" />
+    </a>
+  </li>
+`).join("");
 
 gallery.innerHTML = markup;
 
@@ -65,7 +64,6 @@ gallery.style.width = "1128px";
 gallery.style.display = "grid";
 gallery.style.gridTemplateColumns = "repeat(3, 1fr)";
 gallery.style.gap = "24px";
-gallery.style.padding = "0";
 
 const style = document.createElement("style");
 style.textContent = `
@@ -84,24 +82,25 @@ style.textContent = `
   .gallery-image:hover {
     transform: scale(1.05);
   }
-  .sl-overlay {
-    background-color: rgba(0,0,0,0.85) !important;
+  .basicLightbox--visible {
+    background: rgba(0, 0, 0, 0.9) !important;
   }
 `;
 document.head.appendChild(style);
 
-const lightbox = new SimpleLightbox(".gallery a", {
-  captions: false,
-  nav: false,
-  close: false,
-  showCounter: false,
-  animationSpeed: 250,
-});
+gallery.addEventListener("click", (e) => {
+  e.preventDefault();
 
-lightbox.on("shown.simplelightbox", () => {
-  const imageEl = document.querySelector(".sl-image img");
-  if (imageEl) {
-    imageEl.style.cursor = "zoom-out";
-    imageEl.addEventListener("click", () => lightbox.close());
-  }
+  const link = e.target.closest("a");
+  if (!link) return;
+
+  const instance = basicLightbox.create(`
+    <img src="${link.href}" style="max-width: 90vw; max-height: 90vh; cursor: pointer;" />
+  `, {
+    onShow: (instance) => {
+      instance.element().querySelector('img').onclick = instance.close;
+    }
+  });
+
+  instance.show();
 });
